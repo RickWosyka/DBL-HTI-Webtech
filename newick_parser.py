@@ -7,6 +7,8 @@ class Node:
         self.level = level
         self.value = value
         self.leaves_number = leaves_number
+        self.right_bound = 0
+        self.range = 0
 
 
 trees = Phylo.parse("newick_test.txt", "newick").__next__()
@@ -16,5 +18,9 @@ levels = trees.depths(unit_branch_lengths=True)
 dpt = levels.items()
 print(dpt)
 root = list(levels.keys())[list(levels.values()).index(0)]
-root = Node(1, root.name, dpt[0], 2)
-print(root.name, root.value)
+targetval = 0
+for key in levels.keys():
+    if levels[key] == targetval:
+        print("found", targetval, "at key", key)
+root = Node(1, root.name, key, 2)
+print(root.name, root.level, root.value)
