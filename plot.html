@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+{% block plot %}
+<link rel="stylesheet" href={{cdn_css | safe}} type="text/css" />
+<script type="text/javascript" src={{cdn_js | safe}}></script>
+<head>
+
+{{ script1 | safe }}
+{{ div1 | safe }}
+
+
+<div style="margin-left: 730px; margin-top: -411px; width: 690px; height: 420px; background-color: #9999FF;
+border: 10px solid #330066; border-radius: 15px;">
+{{ script2 | safe }}
+{{ div2 | safe }}
+</div>
+{%endblock %}
