@@ -1,109 +1,35 @@
-from flask import Flask
+from flask import Flask, render_template
+
 
 app = Flask(__name__)
 
+@app.route('/')
+def plot():
+    from bokeh.plotting import figure
+    from bokeh.embed import components
+    from bokeh.resources import CDN
+    p = figure(plot_width=650, plot_height=400)
 
-from app import app
+    p.quad(top=[2, 3, 4], bottom=[1, 2, 3], left=[1, 2, 3],
+           right=[1.2, 2.5, 3.7], color="#B3DE69")
 
+    k = figure(plot_width=650, plot_height=400)
+
+    k.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy", alpha=0.5)
+
+    script1, div1 = components(p)
+    script2, div2 = components(k)
+
+    cdn_js = CDN.js_files[0]
+    cdn_css = CDN.css_files[0]
+    return render_template("plot.html", script1=script1, div1=div1,
+                           script2=script2, div2=div2,
+                           cdn_js=cdn_js, cdn_css=cdn_css)
 
 @app.route('/')
-@app.route('/index')
 def index():
-    return '''
-    <html>
-        <head>
-            <title>Home Page: Hierarchy Visualisation</title>
-            <style> 
-            
-            #rcorner {
-            border-radius: 50px;
-            background: #9999FF;
-            padding: 20px;
-            width: 800px;
-            height: 50px;
-            margin-left: 325px;
-            }
-            
-            div.t1 {
-            width: 150px;
-            border: 2px solid black;
-            background-color: #6666FF;
-            font-family:Russo One;
-            margin-left: 20px;
-            margin-top: -480px;
-            }
+    return render_template("index.html")
 
-            div.t2 {
-            width: 150px;
-            border: 2px solid black;
-            background-color: #6666FF;
-            font-family: Russo One;
-            margin-left: 760px;
-            margin-top: -60px;
-            }
 
-            div.u {
-            border-radius: 15px;
-            background-color: #9999FF;
-            width: 275px;
-            height: 80px;
-            border: 5px solid #4C0099;
-            margin-top: -30px;
-            }
-            
-            div.horl {
-            border-radius: 15px;
-            border: 4px solid #330066;
-            margin-top: 5px;
-            }
-            
-            div.vertl {
-            border-left: 6px solid #330066;
-            height: 500px;
-            margin-left: 720px;
-            margin-top: 10px;
-            }
-
-            </style>
-        </head>
-        <body background="/static/bg1.jpg">
-            <h1 id="rcorner" align= "center" style="color:#000066; font-family:Russo One; font-size:250%;">Hierarchy visualisation</h1>
-            <img src="/static/tue_logo.png" style="width:270px; height:100px; margin-left:1240px; margin-top: -20px"> 
-            <p style= "font-size:200%; margin-top:-100px;"><b>Welcome to our homepage!</b></p>
-            <div class="u">
-            <p style= "font-size:120%; margin-left: 10px;"><b>Upload here your dataset file:</b></p>
-            <button type="button" onclick="alert('Your file has been uploaded!')" style="margin-left: 10px; margin-top: -10px;">Upload</button>
-            </div>
-            <div class="horl"></div>
-            <div class="vertl"></div>
-            <div class="t1"><p align="center" style= "font-size:110%;"><b>Visualisation 1:</b></p></div>
-            <div class="t2"><p align="center" style= "font-size:110%;"><b>Visualisation 2:</b></p></div>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            <br>
-            Made by: <b>Almir Šahman, Dave Cornelis Leonardus Emons, 
-            Raffaello Claudio Poritz, Richard Jacobus Rumoldus Schutte,
-            Rick Theodorus Leonardus Wosyka & Ying Huang</b>
-        </body>
-    </html>'''
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
