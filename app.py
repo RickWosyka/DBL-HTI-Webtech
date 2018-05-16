@@ -9,7 +9,7 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 def index():
     return render_template("upload.html")
 
-@app.route("/upload", method=['POST'])
+@app.route("/upload", methods=['POST'])
 def upload():
     target = os.path.join(APP_ROOT, 'data/')
     print(target)
