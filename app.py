@@ -144,7 +144,7 @@ def upload():
     return render_template("completed_upload.html")
 
 @app.route('/moreinformation', methods=['GET', 'POST'])
-def cool_form():
+def more_information():
     if request.method == 'POST':
         return redirect(url_for('index'))
     return render_template('moreinformation.html')
