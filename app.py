@@ -11,7 +11,7 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 def plot():
     import numpy as np
     from bokeh.models import ColumnDataSource, DataRange1d
-    from bokeh.models.glyphs import AnnularWedge, Ellipse
+    from bokeh.models.glyphs import AnnularWedge, Ellipse, Quad
     from bokeh.io import curdoc
     import queue
     from bokeh.embed import components
@@ -25,7 +25,7 @@ def plot():
             count = 0
             n_old = None
             for n in node.children:
-                if n.seen == False:
+                if not n.seen:
                     if count == 0:
                         n.right_bound = n.parent.right_bound
                         for p in node.children:
@@ -35,8 +35,8 @@ def plot():
                     n.left_bound = n.right_bound + n.range
                     glyph = AnnularWedge(x=10, y=10, inner_radius=(n.level * n.width),
                                          outer_radius=((n.level * n.width) + n.width),
-                                         start_angle=n.right_bound, end_angle=n.left_bound, name=n.tags,
-                                         fill_color=n.color)
+                                         start_angle=n.right_bound, end_angle=n.left_bound, fill_color=n.color,
+                                         line_color='#ffffff', line_width=1, fill_alpha=0.7)
                     plot.add_glyph(source, glyph)
                     n_old = n
                     count += 1
@@ -44,9 +44,8 @@ def plot():
                 n.seen = True
 
     class Node:
-        def __init__(self, level, children, leaves_subtree, tags, color):
+        def __init__(self, level, children, leaves_subtree, color):
             self.color = color
-            self.tags = tags
             self.level = level
             self.children = children
             self.leaves_subtree = leaves_subtree
@@ -63,25 +62,27 @@ def plot():
                 n.parent = root
                 Set_parent(n)
 
-    m = Node(3, None, 1, 'm', '#CDE6FF')
-    n = Node(3, None, 1, 'n', '#860000')
-    l = Node(2, [m], 1, 'l', '#75FFE7')
-    f = Node(2, None, 1, 'f', '#191970')
-    g = Node(2, None, 1, 'g', '#CD1076')
-    h = Node(2, [n], 1, 'h', '#696969')
-    i = Node(2, None, 1, 'i', '#83563C')
-    j = Node(2, None, 1, 'j', '#F0F8FF')
-    k = Node(2, None, 1, 'k', '#7B322C')
-    e = Node(1, [l, k, j], 3, 'e', '#7F1AC4')
-    b = Node(1, [f], 1, 'b', '#FFFF66')
-    c = Node(1, [g, h], 2, 'c', '#FF758D')
-    d = Node(1, [i], 1, 'd', '#81E9EF')
-    a = Node(0, [b, c, d, e], 7, 'a', '#FF0000')
+    m = Node(3, None, 1, '#CDE6FF')
+    n = Node(3, None, 1, '#860000')
+    l = Node(2, [m], 1, '#75FFE7')
+    f = Node(2, None, 1, '#191970')
+    g = Node(2, None, 1, '#CD1076')
+    h = Node(2, [n], 1, '#696969')
+    i = Node(2, None, 1, '#83563C')
+    j = Node(2, None, 1, '#F0F8FF')
+    k = Node(2, None, 1, '#7B322C')
+    e = Node(1, [l, k, j], 3, '#7F1AC4')
+    b = Node(1, [f], 1, '#FFFF66')
+    c = Node(1, [g, h], 2, '#FF758D')
+    d = Node(1, [i], 1, '#81E9EF')
+    a = Node(0, [b, c, d, e], 7, '#FF0000')
 
     def Sunburst(root):
         root.range = np.pi * 2
         root.right_bound = 0
-        glyph = Ellipse(x=10, y=10, width=root.width * 2, height=root.width * 2, fill_color=a.color)
+        glyph = AnnularWedge(x=10, y=10, inner_radius=0, outer_radius=(root.width),
+                             start_angle=n.right_bound, end_angle=np.pi * 2, fill_color=root.color, line_alpha=0,
+                             fill_alpha=0.7)
         plot.add_glyph(source, glyph)
         DFS_visit(root)
 
@@ -100,21 +101,129 @@ def plot():
 
     curdoc().add_root(plot)
 
-    n = 50000
-    x = np.random.standard_normal(n)
-    y = np.random.standard_normal(n)
+    #---------------------------------------------------------------
+    #Second visualisation:
 
-    bins = hexbin(x, y, 0.1)
+    open_space_top = 0
+    open_space_bottom = 0
+    open_space_left = 0
+    open_space_right = 0
 
-    k = figure(title="Hex Tiles", match_aspect=True, background_fill_color='#440154', plot_width=650, plot_height=650,
-               tools='pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select')
-    k.grid.visible = False
+    def Foamtree(node):
+        if node.children:
+            global open_space_left
+            global open_space_top
+            global open_space_bottom
+            global open_space_right
+            on_width = False
+            for n in node.children:
+                if not n.seen:
+                    n.area = (n.leaves_subtree / n.parent.leaves_subtree) * n.parent.area
+                    if (np.roots(open_space_right ** 2 - open_space_left ** 2)) >= (
+                    np.roots(open_space_top ** 2 - open_space_bottom ** 2)):
+                        n.top = open_space_top
+                        n.bottom = open_space_bottom
+                        n.left = open_space_left
+                        n.right = (n.area / (n.top - n.bottom)) + n.left
+                        on_width = True
+                    else:
+                        n.top = open_space_top
+                        n.left = open_space_left
+                        n.right = open_space_right
+                        n.bottom = (n.area / (n.right - n.left)) + n.top
+                        on_width = False
+                    glyph = Quad(left=n.left, right=n.right, top=n.top, bottom=n.bottom, fill_color=n.color,
+                                 fill_alpha=0.5)
+                    plot2.add_glyph(source, glyph)
+                    if on_width:
+                        open_space_left = n.right
+                    else:
+                        open_space_top = n.bottom
+                    Foamtree(n)
+                n.seen = True
 
-    k.hex_tile(q="q", r="r", size=0.1, line_color=None, source=bins,
-               fill_color=linear_cmap('counts', 'Viridis256', 0, max(bins.counts)))
+    def Foamroot(root):
+        global open_space_left
+        global open_space_top
+        global open_space_bottom
+        global open_space_right
+        root.top = 14
+        root.bottom = 6
+        root.left = 6
+        root.right = 14
+        open_space_top = root.top
+        open_space_bottom = root.bottom
+        open_space_left = root.left
+        open_space_right = root.right
+        glyph = Quad(left=root.left, right=root.right, top=root.top, bottom=root.bottom, fill_color=root.color,
+                     fill_alpha=0.5)
+        plot2.add_glyph(source, glyph)
+        Foamtree(root)
+
+    class Node:
+        def __init__(self, level, children, leaves_subtree, color):
+            self.color = color
+            self.level = level
+            self.children = children
+            self.leaves_subtree = leaves_subtree
+            self.width = 1
+            self.range = 1
+            self.right_bound = 0
+            self.left_bound = 0
+            self.parent = None
+            self.seen = False
+            self.top = 0
+            self.bottom = 0
+            self.right = 0
+            self.left = 0
+            self.area = 0
+
+    def Set_parent(root):
+        if root.children:
+            for n in root.children:
+                n.parent = root
+                Set_parent(n)
+
+    def Reset(root):
+        if root.children:
+            for n in root.children:
+                n.seen = False
+                Reset(n)
+
+    m = Node(3, None, 1, '#CDE6FF')
+    n = Node(3, None, 1, '#860000')
+    l = Node(2, [m], 1, '#75FFE7')
+    f = Node(2, None, 1, '#191970')
+    g = Node(2, None, 1, '#CD1076')
+    h = Node(2, [n], 1, '#696969')
+    i = Node(2, None, 1, '#83563C')
+    j = Node(2, None, 1, '#F0F8FF')
+    k = Node(2, None, 1, '#7B322C')
+    e = Node(1, [l, k, j], 3, '#7F1AC4')
+    b = Node(1, [f], 1, '#FFFF66')
+    c = Node(1, [g, h], 2, '#FF758D')
+    d = Node(1, [i], 1, '#81E9EF')
+    a = Node(0, [b, c, d, e], 7, '#FF0000')
+
+    Set_parent(a)
+
+    source = ColumnDataSource()
+
+    xdr = DataRange1d(start=5, end=15)
+    ydr = DataRange1d(start=5, end=15)
+
+    plot2 = figure(title="Foam tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
+                   h_symmetry=False, v_symmetry=False, min_border=0,
+                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
+
+    Foamroot(a)
+
+    curdoc().add_root(plot2)
+
+    Reset(a)
 
     script1, div1 = components(plot)
-    script2, div2 = components(k)
+    script2, div2 = components(plot2)
 
     cdn_js = CDN.js_files[0]
     cdn_css = CDN.css_files[0]
@@ -148,6 +257,12 @@ def more_information():
     if request.method == 'POST':
         return redirect(url_for('index'))
     return render_template('moreinformation.html')
+
+@app.route('/', methods=['GET', 'POST'])
+def backtohomepage():
+    if request.method == 'POST':
+        return redirect(url_for('index'))
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
