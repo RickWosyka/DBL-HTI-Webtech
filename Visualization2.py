@@ -4,6 +4,7 @@ from bokeh.models import ColumnDataSource, DataRange1d
 from bokeh.models.glyphs import AnnularWedge, Ellipse, Quad
 from bokeh.io import curdoc, show
 from bokeh.plotting import figure
+from bokeh.color import RGB
 
 source = ColumnDataSource()
 open_space_top = 0
@@ -54,7 +55,10 @@ def foamtree(node):
         global open_space_bottom
         global open_space_right
         on_width = False
+        maxDepth = 3
+        rgb = (255 / maxDepth)
         for n in node.children:
+            n.color = (255, rgb * n.level, 0)
             if not n.seen:
                 n.area = (n.leaves_subtree/ n.parent.leaves_subtree) * n.parent.area
                 if (open_space_right- open_space_left) >= (open_space_top - open_space_bottom):
@@ -89,6 +93,7 @@ def foamroot(root):
     root.left = 6
     root.right = 14
     root.area = (root.top - root.bottom) * (root.right - root.left)
+    root.color = (255,0,0)
     open_space_top = root.top
     open_space_bottom = root.bottom
     open_space_left = root.left
