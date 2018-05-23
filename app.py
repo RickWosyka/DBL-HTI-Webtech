@@ -1,30 +1,104 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
+from Bio import Phylo
+
 
 app = Flask(__name__)
 
+maxDepth = 0
+nodes = []
+rootnode = 0
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
+class Node:
+    def __init__(self, name, level, leaves_subtree, children):
+        self.color = None
+        self.name = name
+        self.level = level
+        self.children = children
+        self.leaves_subtree = leaves_subtree
+        self.width = 1
+        self.range = 1
+        self.right_bound = 0
+        self.left_bound = 0
+        self.parent = None
+        self.seen = False
+        self.top = 0
+        self.bottom = 0
+        self.right = 0
+        self.left = 0
+        self.area = 0
+
+@app.route('/')
+def index():
+    return render_template("index.html")
+
+
+@app.route("/", methods=['POST'])
+def upload():
+    target = os.path.join(APP_ROOT, 'data/')
+    print(target)
+
+    if not os.path.isdir(target):
+        os.mkdir(target)
+
+    for file in request.files.getlist("file"):
+        print(file)
+        filename = file.filename
+        destination = "/".join([target, filename])
+        print(destination)
+        file.save(destination)
+    return parse(filename)
+
+
+# Parser:
+def parse(file):
+    trees = Phylo.parse(file, "newick").__next__()
+
+    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade name : depth)
+
+    root = list(levels.keys())[list(levels.values()).index(0)]
+    for key in levels.keys():  # loop that finds the name of the root node
+        if levels[key] == 0:
+            break
+    global rootnode
+    rootnode = Node(root.name, levels[key], root.count_terminals(), root.clades)
+    clade_list = trees.find_clades()
+    names_list = levels.keys()
+    global nodes
+    nodes = []  # this is the list that will contain all nodes
+
+    for Clade in clade_list:  # calculates properties and creates nodes
+        node_name = Clade.name
+        node_children = Clade.clades
+        node_leaves = Clade.count_terminals()
+        if Clade in names_list:
+            node_depth = levels[Clade]
+        else:
+            node_depth = 0
+        nodes.append(Node(node_name, node_depth, node_leaves, node_children))
+    return rootnode
+# Parser
 
 
 @app.route('/')
 def plot():
     import numpy as np
     from bokeh.models import ColumnDataSource, DataRange1d
-    from bokeh.models.glyphs import AnnularWedge, Ellipse, Quad
+    from bokeh.models.glyphs import AnnularWedge, Quad
     from bokeh.io import curdoc
-    import queue
     from bokeh.embed import components
     from bokeh.resources import CDN
     from bokeh.plotting import figure
-    from bokeh.transform import linear_cmap
-    from bokeh.util.hex import hexbin
 
     def DFS_visit(node):
         if node.children:
             count = 0
             n_old = None
+            rgb = (255 / maxDepth)
             for n in node.children:
+                n.color = (255, rgb * n.level, 0)
                 if not n.seen:
                     if count == 0:
                         n.right_bound = n.parent.right_bound
@@ -43,50 +117,22 @@ def plot():
                     DFS_visit(n)
                 n.seen = True
 
-    class Node:
-        def __init__(self, level, children, leaves_subtree, color):
-            self.color = color
-            self.level = level
-            self.children = children
-            self.leaves_subtree = leaves_subtree
-            self.width = 1
-            self.range = 1
-            self.right_bound = 0
-            self.left_bound = 0
-            self.parent = None
-            self.seen = False
-
     def Set_parent(root):
         if root.children:
             for n in root.children:
                 n.parent = root
                 Set_parent(n)
 
-    m = Node(3, None, 1, '#CDE6FF')
-    n = Node(3, None, 1, '#860000')
-    l = Node(2, [m], 1, '#75FFE7')
-    f = Node(2, None, 1, '#191970')
-    g = Node(2, None, 1, '#CD1076')
-    h = Node(2, [n], 1, '#696969')
-    i = Node(2, None, 1, '#83563C')
-    j = Node(2, None, 1, '#F0F8FF')
-    k = Node(2, None, 1, '#7B322C')
-    e = Node(1, [l, k, j], 3, '#7F1AC4')
-    b = Node(1, [f], 1, '#FFFF66')
-    c = Node(1, [g, h], 2, '#FF758D')
-    d = Node(1, [i], 1, '#81E9EF')
-    a = Node(0, [b, c, d, e], 7, '#FF0000')
-
     def Sunburst(root):
         root.range = np.pi * 2
         root.right_bound = 0
         glyph = AnnularWedge(x=10, y=10, inner_radius=0, outer_radius=(root.width),
-                             start_angle=n.right_bound, end_angle=np.pi * 2, fill_color=root.color, line_alpha=0,
-                             fill_alpha=0.7)
+                         start_angle=root.right_bound, end_angle=np.pi * 2, fill_color=root.color, line_alpha=0,
+                         fill_alpha=0.7)
         plot.add_glyph(source, glyph)
         DFS_visit(root)
 
-    Set_parent(a)
+    Set_parent(rootnode)
 
     source = ColumnDataSource()
 
@@ -97,12 +143,12 @@ def plot():
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    Sunburst(a)
+    Sunburst(rootnode)
 
     curdoc().add_root(plot)
 
-    #---------------------------------------------------------------
-    #Second visualisation:
+    # ------------------------------------------------------------------------------------------------------------------
+    # Second visualisation:
 
     open_space_top = 0
     open_space_bottom = 0
@@ -160,24 +206,6 @@ def plot():
         plot2.add_glyph(source, glyph)
         Foamtree(root)
 
-    class Node:
-        def __init__(self, level, children, leaves_subtree, color):
-            self.color = color
-            self.level = level
-            self.children = children
-            self.leaves_subtree = leaves_subtree
-            self.width = 1
-            self.range = 1
-            self.right_bound = 0
-            self.left_bound = 0
-            self.parent = None
-            self.seen = False
-            self.top = 0
-            self.bottom = 0
-            self.right = 0
-            self.left = 0
-            self.area = 0
-
     def Set_parent(root):
         if root.children:
             for n in root.children:
@@ -190,22 +218,7 @@ def plot():
                 n.seen = False
                 Reset(n)
 
-    m = Node(3, None, 1, '#CDE6FF')
-    n = Node(3, None, 1, '#860000')
-    l = Node(2, [m], 1, '#75FFE7')
-    f = Node(2, None, 1, '#191970')
-    g = Node(2, None, 1, '#CD1076')
-    h = Node(2, [n], 1, '#696969')
-    i = Node(2, None, 1, '#83563C')
-    j = Node(2, None, 1, '#F0F8FF')
-    k = Node(2, None, 1, '#7B322C')
-    e = Node(1, [l, k, j], 3, '#7F1AC4')
-    b = Node(1, [f], 1, '#FFFF66')
-    c = Node(1, [g, h], 2, '#FF758D')
-    d = Node(1, [i], 1, '#81E9EF')
-    a = Node(0, [b, c, d, e], 7, '#FF0000')
-
-    Set_parent(a)
+    Set_parent(rootnode)
 
     source = ColumnDataSource()
 
@@ -216,11 +229,11 @@ def plot():
                    h_symmetry=False, v_symmetry=False, min_border=0,
                    tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    Foamroot(a)
+    Foamroot(rootnode)
 
     curdoc().add_root(plot2)
 
-    Reset(a)
+    Reset(rootnode)
 
     script1, div1 = components(plot)
     script2, div2 = components(plot2)
@@ -232,32 +245,15 @@ def plot():
                            cdn_js=cdn_js, cdn_css=cdn_css)
 
 
-@app.route('/')
-def index():
-    return render_template("index.html")
-
-@app.route("/upload", methods=['POST'])
-def upload():
-    target = os.path.join(APP_ROOT, 'data/')
-    print(target)
-
-    if not os.path.isdir(target):
-        os.mkdir(target)
-
-    for file in request.files.getlist("file"):
-        print(file)
-        filename = file.filename
-        destination = "/".join([target, filename])
-        print(destination)
-        file.save(destination)
-    return render_template("completed_upload.html")
-
+# Link to more information page:
 @app.route('/moreinformation', methods=['GET', 'POST'])
 def more_information():
     if request.method == 'POST':
         return redirect(url_for('index'))
     return render_template('moreinformation.html')
 
+
+# Link back to home page:
 @app.route('/', methods=['GET', 'POST'])
 def backtohomepage():
     if request.method == 'POST':
