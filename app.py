@@ -1,38 +1,11 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
-from Bio import Phylo
 
 
 app = Flask(__name__)
 
-maxDepth = 0
-nodes = []
-rootnode = 0
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-
-class Node:
-    def __init__(self, name, level, leaves_subtree, children):
-        self.color = None
-        self.name = name
-        self.level = level
-        self.children = children
-        self.leaves_subtree = leaves_subtree
-        self.width = 1
-        self.range = 1
-        self.right_bound = 0
-        self.left_bound = 0
-        self.parent = None
-        self.seen = False
-        self.top = 0
-        self.bottom = 0
-        self.right = 0
-        self.left = 0
-        self.area = 0
-
-@app.route('/')
-def index():
-    return render_template("index.html")
 
 
 @app.route("/", methods=['POST'])
@@ -49,44 +22,16 @@ def upload():
         destination = "/".join([target, filename])
         print(destination)
         file.save(destination)
-    return parse(filename)
+    return render_template("completed_upload.html")
 
-
-# Parser:
-def parse(file):
-    trees = Phylo.parse(file, "newick").__next__()
-
-    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade name : depth)
-
-    root = list(levels.keys())[list(levels.values()).index(0)]
-    for key in levels.keys():  # loop that finds the name of the root node
-        if levels[key] == 0:
-            break
-    global rootnode
-    rootnode = Node(root.name, levels[key], root.count_terminals(), root.clades)
-    clade_list = trees.find_clades()
-    names_list = levels.keys()
-    global nodes
-    nodes = []  # this is the list that will contain all nodes
-
-    for Clade in clade_list:  # calculates properties and creates nodes
-        node_name = Clade.name
-        node_children = Clade.clades
-        node_leaves = Clade.count_terminals()
-        if Clade in names_list:
-            node_depth = levels[Clade]
-        else:
-            node_depth = 0
-        nodes.append(Node(node_name, node_depth, node_leaves, node_children))
-    return rootnode
-# Parser
 
 
 @app.route('/')
 def plot():
     import numpy as np
+    import bokeh as bok
     from bokeh.models import ColumnDataSource, DataRange1d
-    from bokeh.models.glyphs import AnnularWedge, Quad
+    from bokeh.models.glyphs import AnnularWedge, Ellipse, Quad
     from bokeh.io import curdoc
     from bokeh.embed import components
     from bokeh.resources import CDN
@@ -94,6 +39,7 @@ def plot():
 
     def DFS_visit(node):
         if node.children:
+            maxDepth = 4
             count = 0
             n_old = None
             rgb = (255 / maxDepth)
@@ -117,22 +63,55 @@ def plot():
                     DFS_visit(n)
                 n.seen = True
 
+    class Node:
+        def __init__(self, level, children, leaves_subtree, color):
+            self.color = color
+            self.level = level
+            self.children = children
+            self.leaves_subtree = leaves_subtree
+            self.width = 1
+            self.range = 1
+            self.right_bound = 0
+            self.left_bound = 0
+            self.parent = None
+            self.seen = False
+            self.top = 0
+            self.bottom = 0
+            self.right = 0
+            self.left = 0
+            self.area = 0
+
     def Set_parent(root):
         if root.children:
             for n in root.children:
                 n.parent = root
                 Set_parent(n)
 
+    m = Node(3, None, 1, None)
+    n = Node(3, None, 1, None)
+    l = Node(2, [m], 1, None)
+    f = Node(2, None, 1, None)
+    g = Node(2, None, 1, None)
+    h = Node(2, [n], 1, None)
+    i = Node(2, None, 1, None)
+    j = Node(2, None, 1, None)
+    k = Node(2, None, 1, None)
+    e = Node(1, [l, k, j], 3, None)
+    b = Node(1, [f], 1, None)
+    c = Node(1, [g, h], 2, None)
+    d = Node(1, [i], 1, None)
+    a = Node(0, [b, c, d, e], 7, (255, 0, 0))
+
     def Sunburst(root):
         root.range = np.pi * 2
         root.right_bound = 0
         glyph = AnnularWedge(x=10, y=10, inner_radius=0, outer_radius=(root.width),
-                         start_angle=root.right_bound, end_angle=np.pi * 2, fill_color=root.color, line_alpha=0,
+                         start_angle=n.right_bound, end_angle=np.pi * 2, fill_color=root.color, line_alpha=0,
                          fill_alpha=0.7)
         plot.add_glyph(source, glyph)
         DFS_visit(root)
 
-    Set_parent(rootnode)
+    Set_parent(a)
 
     source = ColumnDataSource()
 
@@ -143,30 +122,48 @@ def plot():
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    Sunburst(rootnode)
+    Sunburst(a)
 
     curdoc().add_root(plot)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------------------------------
     # Second visualisation:
 
+    source = ColumnDataSource()
     open_space_top = 0
     open_space_bottom = 0
     open_space_left = 0
     open_space_right = 0
 
-    def Foamtree(node):
+    m = Node(3, None, 1, '#CDE6FF')
+    p = Node(3, None, 1, '#860000')
+    l = Node(2, [m], 1, '#75FFE7')
+    f = Node(2, None, 1, '#191970')
+    g = Node(2, None, 1, '#CD1076')
+    h = Node(2, [p], 1, '#696969')
+    i = Node(2, None, 1, '#83563C')
+    j = Node(2, None, 1, '#F0F8FF')
+    k = Node(2, None, 1, '#7B322C')
+    e = Node(1, [l, k, j], 3, '#7F1AC4')
+    b = Node(1, [f], 1, '#FFFF66')
+    c = Node(1, [g, h], 2, '#FF758D')
+    d = Node(1, [i], 1, '#81E9EF')
+    a = Node(0, [b, c, d, e], 7, '#FF0000')
+
+    def foamtree(node):
         if node.children:
             global open_space_left
             global open_space_top
             global open_space_bottom
             global open_space_right
             on_width = False
+            maxDepth = 3
+            rgb = (255 / maxDepth)
             for n in node.children:
+                n.color = (255, rgb * n.level, 0)
                 if not n.seen:
                     n.area = (n.leaves_subtree / n.parent.leaves_subtree) * n.parent.area
-                    if (np.roots(open_space_right ** 2 - open_space_left ** 2)) >= (
-                    np.roots(open_space_top ** 2 - open_space_bottom ** 2)):
+                    if (open_space_right - open_space_left) >= (open_space_top - open_space_bottom):
                         n.top = open_space_top
                         n.bottom = open_space_bottom
                         n.left = open_space_left
@@ -176,19 +173,19 @@ def plot():
                         n.top = open_space_top
                         n.left = open_space_left
                         n.right = open_space_right
-                        n.bottom = (n.area / (n.right - n.left)) + n.top
+                        n.bottom = -(n.area / (n.right - n.left)) + n.top
                         on_width = False
                     glyph = Quad(left=n.left, right=n.right, top=n.top, bottom=n.bottom, fill_color=n.color,
                                  fill_alpha=0.5)
-                    plot2.add_glyph(source, glyph)
+                    bok.models.plots.plot.add_glyph(source, glyph)
                     if on_width:
                         open_space_left = n.right
                     else:
                         open_space_top = n.bottom
-                    Foamtree(n)
+                    foamtree(n)
                 n.seen = True
 
-    def Foamroot(root):
+    def foamroot(root):
         global open_space_left
         global open_space_top
         global open_space_bottom
@@ -197,52 +194,54 @@ def plot():
         root.bottom = 6
         root.left = 6
         root.right = 14
+        root.area = (root.top - root.bottom) * (root.right - root.left)
+        root.color = (255, 0, 0)
         open_space_top = root.top
         open_space_bottom = root.bottom
         open_space_left = root.left
         open_space_right = root.right
         glyph = Quad(left=root.left, right=root.right, top=root.top, bottom=root.bottom, fill_color=root.color,
                      fill_alpha=0.5)
-        plot2.add_glyph(source, glyph)
-        Foamtree(root)
+        bok.models.plots.plot.add_glyph(source, glyph)
+        foamtree(root)
 
-    def Set_parent(root):
+    def set_parent(root):
         if root.children:
             for n in root.children:
                 n.parent = root
-                Set_parent(n)
+                set_parent(n)
 
-    def Reset(root):
+    def reset(root):
         if root.children:
             for n in root.children:
                 n.seen = False
-                Reset(n)
+                reset(n)
 
-    Set_parent(rootnode)
+    def run():
+        xdr = DataRange1d(start=5, end=15)
+        ydr = DataRange1d(start=5, end=15)
 
-    source = ColumnDataSource()
+        bok.models.plots.plot = figure(title="Foam tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
+                                       h_symmetry=False, v_symmetry=False, min_border=0,
+                                       tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    xdr = DataRange1d(start=5, end=15)
-    ydr = DataRange1d(start=5, end=15)
+        set_parent(a)
+        foamroot(a)
 
-    plot2 = figure(title="Foam tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
-                   h_symmetry=False, v_symmetry=False, min_border=0,
-                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
+        curdoc().add_root(bok.models.plots.plot)
 
-    Foamroot(rootnode)
+        reset(a)
 
-    curdoc().add_root(plot2)
-
-    Reset(rootnode)
+    run()
 
     script1, div1 = components(plot)
-    script2, div2 = components(plot2)
+    script2, div2 = components(bok.models.plots.plot)
 
     cdn_js = CDN.js_files[0]
     cdn_css = CDN.css_files[0]
     return render_template("plot.html", script1=script1, div1=div1,
                            script2=script2, div2=div2,
-                           cdn_js=cdn_js, cdn_css=cdn_css)
+                           cdn_css=cdn_css, cdn_js=cdn_js)
 
 
 # Link to more information page:
