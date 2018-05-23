@@ -1,16 +1,16 @@
-{% extends "index.html" %}
-{% block plot %}
+{%extends "index.html"%}
+{%block plots%}
 <link rel="stylesheet" href={{cdn_css | safe}} type="text/css" />
 <script type="text/javascript" src={{cdn_js | safe}}></script>
-<head>
 
-{{ script1 | safe }}
-{{ div1 | safe }}
-
-
-<div style="margin-left: 730px; margin-top: -661px; width: 690px; height: 670px; background-color: #9999FF;
-border: 10px solid #330066; border-radius: 15px;">
-{{ script2 | safe }}
-{{ div2 | safe }}
+<div align="center" style="width: 690px; height: 670px; background-color: #9999FF;border: 10px solid #330066;border-radius: 15px;">
+{{script1 | safe}}
+{{ div1 | safe}}
 </div>
-{%endblock %}
+
+ <div align="center" style="width: 690px; height: 670px; background-color: #9999FF; border:
+    10px solid #330066;border-radius: 15px;margin-left: 740px;margin-top: -690px;">
+{{script2 | safe}}
+{{ div2 | safe}}
+ </div>
+{%endblock%}
