@@ -1,12 +1,34 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
-
+from Bio import Phylo
 
 app = Flask(__name__)
 
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+class Node:
+    def __init__(self, name, level, leaves_subtree, children):
+        self.color = None
+        self.name = name
+        self.level = level
+        self.children = children
+        self.leaves_subtree = leaves_subtree
+        self.width = 1
+        self.range = 1
+        self.right_bound = 0
+        self.left_bound = 0
+        self.parent = None
+        self.seen = False
+        self.top = 0
+        self.bottom = 0
+        self.right = 0
+        self.left = 0
+        self.area = 0
 
+maxDepth = 0
+nodes = []
+rootnode = Node("placeholder", -1, -1, None)
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 @app.route("/", methods=['POST'])
 def upload():
@@ -22,12 +44,38 @@ def upload():
         destination = "/".join([target, filename])
         print(destination)
         file.save(destination)
-    return render_template("completed_upload.html")
+        return parse(filename)
 
+# Parser:
+def parse(file):
+    trees = Phylo.parse(file, "newick").__next__()
 
+    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade name : depth)
 
-@app.route('/')
-def plot():
+    root = list(levels.keys())[list(levels.values()).index(0)]
+    for key in levels.keys():  # loop that finds the name of the root node
+        if levels[key] == 0:
+            break
+    global rootnode
+    rootnode = Node(root.name, levels[key], root.count_terminals(), root.clades)
+    clade_list = trees.find_clades()
+    names_list = levels.keys()
+    global nodes
+    nodes = []  # this is the list that will contain all nodes
+
+    for Clade in clade_list:  # calculates properties and creates nodes
+        node_name = Clade.name
+        node_children = Clade.clades
+        node_leaves = Clade.count_terminals()
+        if Clade in names_list:
+            node_depth = levels[Clade]
+        else:
+            node_depth = 0
+        nodes.append(Node(node_name, node_depth, node_leaves, node_children))
+    return plot(rootnode)
+# Parser
+
+def plot(rootnode):
     import numpy as np
     import bokeh as bok
     from bokeh.models import ColumnDataSource, DataRange1d
@@ -36,6 +84,9 @@ def plot():
     from bokeh.embed import components
     from bokeh.resources import CDN
     from bokeh.plotting import figure
+
+    if rootnode.level == -1:
+        return render_template("index.html")
 
     def DFS_visit(node):
         if node.children:
@@ -63,44 +114,13 @@ def plot():
                     DFS_visit(n)
                 n.seen = True
 
-    class Node:
-        def __init__(self, level, children, leaves_subtree, color):
-            self.color = color
-            self.level = level
-            self.children = children
-            self.leaves_subtree = leaves_subtree
-            self.width = 1
-            self.range = 1
-            self.right_bound = 0
-            self.left_bound = 0
-            self.parent = None
-            self.seen = False
-            self.top = 0
-            self.bottom = 0
-            self.right = 0
-            self.left = 0
-            self.area = 0
 
-    def Set_parent(root):
-        if root.children:
-            for n in root.children:
-                n.parent = root
+    def Set_parent(node):
+        if node.children:
+            for n in node.children:
+                n.parent = node
                 Set_parent(n)
 
-    m = Node(3, None, 1, None)
-    n = Node(3, None, 1, None)
-    l = Node(2, [m], 1, None)
-    f = Node(2, None, 1, None)
-    g = Node(2, None, 1, None)
-    h = Node(2, [n], 1, None)
-    i = Node(2, None, 1, None)
-    j = Node(2, None, 1, None)
-    k = Node(2, None, 1, None)
-    e = Node(1, [l, k, j], 3, None)
-    b = Node(1, [f], 1, None)
-    c = Node(1, [g, h], 2, None)
-    d = Node(1, [i], 1, None)
-    a = Node(0, [b, c, d, e], 7, (255, 0, 0))
 
     def Sunburst(root):
         root.range = np.pi * 2
@@ -111,7 +131,7 @@ def plot():
         plot.add_glyph(source, glyph)
         DFS_visit(root)
 
-    Set_parent(a)
+    Set_parent(rootnode)
 
     source = ColumnDataSource()
 
@@ -122,7 +142,7 @@ def plot():
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    Sunburst(a)
+    Sunburst(rootnode)
 
     curdoc().add_root(plot)
 
@@ -135,20 +155,6 @@ def plot():
     open_space_left = 0
     open_space_right = 0
 
-    m = Node(3, None, 1, '#CDE6FF')
-    p = Node(3, None, 1, '#860000')
-    l = Node(2, [m], 1, '#75FFE7')
-    f = Node(2, None, 1, '#191970')
-    g = Node(2, None, 1, '#CD1076')
-    h = Node(2, [p], 1, '#696969')
-    i = Node(2, None, 1, '#83563C')
-    j = Node(2, None, 1, '#F0F8FF')
-    k = Node(2, None, 1, '#7B322C')
-    e = Node(1, [l, k, j], 3, '#7F1AC4')
-    b = Node(1, [f], 1, '#FFFF66')
-    c = Node(1, [g, h], 2, '#FF758D')
-    d = Node(1, [i], 1, '#81E9EF')
-    a = Node(0, [b, c, d, e], 7, '#FF0000')
 
     def foamtree(node):
         if node.children:
@@ -225,12 +231,12 @@ def plot():
                                        h_symmetry=False, v_symmetry=False, min_border=0,
                                        tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-        set_parent(a)
-        foamroot(a)
+        set_parent(rootnode)
+        foamroot(rootnode)
 
         curdoc().add_root(bok.models.plots.plot)
 
-        reset(a)
+        reset(rootnode)
 
     run()
 
