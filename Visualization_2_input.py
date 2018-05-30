@@ -9,10 +9,6 @@ ydr = DataRange1d(start=5, end=15)
 plot = figure(title=None, x_range=xdr, y_range=ydr, plot_width=320, plot_height=300,
               h_symmetry=False, v_symmetry=False, min_border=0,
               tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
-open_space_top = 0
-open_space_bottom = 0
-open_space_left = 0
-open_space_right = 0
 
 
 class Node:
@@ -44,10 +40,10 @@ def run_foamtree(root):
 
 def foamtree(node):
     if node.children:
-        global open_space_left
-        global open_space_top
-        global open_space_bottom
-        global open_space_right
+        open_space_left = node.left
+        open_space_top = node.top
+        open_space_bottom = node.bottom
+        open_space_right = node.righ
         for n in node.children:
             if not n.seen:
                 n.area = (n.leaves_subtree / n.parent.leaves_subtree) * n.parent.area
@@ -75,19 +71,11 @@ def foamtree(node):
 
 
 def foamtree_root(root):
-    global open_space_left
-    global open_space_top
-    global open_space_bottom
-    global open_space_right
     root.top = 14
     root.bottom = 6
     root.left = 6
     root.right = 14
     root.area = (root.top - root.bottom) * (root.right - root.left)
-    open_space_top = root.top
-    open_space_bottom = root.bottom
-    open_space_left = root.left
-    open_space_right = root.right
     glyph = Quad(left=root.left, right=root.right, top=root.top,
                  bottom=root.bottom, fill_color=root.color, fill_alpha=0.5)
     plot.add_glyph(source, glyph)
