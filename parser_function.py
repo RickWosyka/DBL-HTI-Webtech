@@ -29,7 +29,6 @@ def parse(file):
     def find_children(node, clade):
         if clade is None:
             return []
-        print(clade)  # For some reason, variable won't update in the loop.
         subclades = current_clade.clades
         subclade_names = []
         for sub in subclades:
