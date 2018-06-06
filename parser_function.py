@@ -1,4 +1,5 @@
 from Bio import Phylo
+import time
 
 
 class Node:
@@ -7,45 +8,81 @@ class Node:
         self.level = level
         self.leaves_subtree = leaves_subtree
         self.children = children
-        self.right_bound = 0
-        self.range = 0
+        self.right_bound = 1
+        self.range = 1
 
 
 maxDepth = 0
 nodes = []
-rootnode = 0
+rootnode = Node
+
+
+def Set_parent(root):
+    if root.children:
+        for n in root.children:
+            n.parent = root
+            Set_parent(n)
 
 
 def parse(file):
-    trees = Phylo.parse(file, "newick").__next__()
+    # The function that finds the children of a given Node
+    def find_children(node, clade):
+        if clade is None:
+            return []
+        print(clade)  # For some reason, variable won't update in the loop.
+        subclades = current_clade.clades
+        subclade_names = []
+        for sub in subclades:
+            subclade_names.append(sub.name)
+        children = []
+        for child_node in nodes:
+            if child_node.name in subclade_names:
+                children.append(child_node)
+        return children
 
-    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade name : depth)
+    trees = Phylo.parse(file, "newick").__next__()
+    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade : depth)
 
     root = list(levels.keys())[list(levels.values()).index(0)]
-    for key in levels.keys():  # loop that finds the name of the root node
-        if levels[key] == 0:
-            break
-    global rootnode
-    rootnode = Node(root.name, levels[key], root.count_terminals(), root.clades)
-    global maxDepth
+    global maxDepth, current_clade
     maxDepth = max(levels.values())
     clade_list = trees.find_clades()
     names_list = levels.keys()
     global nodes
     nodes = []  # this is the list that will contain all nodes
 
-    for Clade in clade_list:  # calculates properties and creates nodes
+    # This loop calculates necessary properties and creates proper Nodes
+    for Clade in clade_list:
         node_name = Clade.name
-        node_children = Clade.clades
         node_leaves = Clade.count_terminals()
         if Clade in names_list:
             node_depth = levels[Clade]
         else:
             node_depth = 0
-        nodes.append(Node(node_name, node_depth, node_leaves, node_children))
-        return
+        nodes.append(Node(node_name, node_depth, node_leaves, []))
+        print(Clade.branch_length)
+    root_children = []
+
+    # This loop ensures that each Node's children are correct
+    for vertex in nodes:
+        for cclade in trees.find_clades():
+            if cclade.name == vertex.name:
+                current_clade = cclade
+                break
+        vertex.children = find_children(vertex, current_clade)
+        if vertex.level == 1:
+            root_children.append(vertex)
+    global rootnode
+    rootnode = Node(root.name, 0, root.count_terminals(), root_children)
 
 
-filename = "ncbi-taxonomy.tre"
+filename = "newick_test.nwk"
+
+t0 = time.time()
+
 parse(filename)
-print(rootnode.children)
+
+
+t1 = time.time()
+t = t1 - t0
+print(t)
