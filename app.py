@@ -1,9 +1,9 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from Bio import Phylo
+from collections import defaultdict
 
 app = Flask(__name__)
-
 
 class Node:
     def __init__(self, name, level, leaves_subtree, children):
@@ -44,36 +44,59 @@ def upload():
         destination = "/".join([target, filename])
         print(destination)
         file.save(destination)
-        return render_template("completed_upload.html")
+        parse(filename)
+        return plot()
 
-# Parser:
+# Parser----------------------------------------------------------------------------------------------------------------
 def parse(file):
-    trees = Phylo.parse(file, "newick").__next__()
+    # The function that finds the children of a given Node
+    def find_children(node):
+        current_clade = namedict[node.name][0]
+        namedict[node.name].pop(0)
+        subclades = current_clade.clades
+        children = []
+        for sub in subclades:
+            children.append(nodedict[sub.name][0])
+            nodedict[sub.name].pop(0)
+        node.children = children
 
-    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade name : depth)
+    trees = Phylo.parse(file, "newick").__next__()
+    levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade : depth)
 
     root = list(levels.keys())[list(levels.values()).index(0)]
-    for key in levels.keys():  # loop that finds the name of the root node
-        if levels[key] == 0:
-            break
-    global rootnode
-    rootnode = Node(root.name, levels[key], root.count_terminals(), root.clades)
+    global maxDepth, current_clade
+    maxDepth = max(levels.values())
     clade_list = trees.find_clades()
+    pairlist = []
+    nodepairs = []
     names_list = levels.keys()
     global nodes
     nodes = []  # this is the list that will contain all nodes
-
-    for Clade in clade_list:  # calculates properties and creates nodes
+    i = 0
+    # This loop calculates necessary properties and creates proper Nodes
+    for Clade in clade_list:
         node_name = Clade.name
-        node_children = Clade.clades
         node_leaves = Clade.count_terminals()
-        if Clade in names_list:
-            node_depth = levels[Clade]
-        else:
-            node_depth = 0
-        nodes.append(Node(node_name, node_depth, node_leaves, node_children))
-    return
-# Parser
+        node_depth = levels[Clade]
+        nodes.append(Node(node_name, node_depth, node_leaves, []))
+        nodepairs.append((node_name, nodes[i]))
+        pairlist.append((Clade.name, Clade))
+        i += 1
+    root_children = []
+    namedict = defaultdict(list)
+    nodedict = defaultdict(list)
+    for k, v in pairlist:
+        namedict[k].append(v)
+    for k, v in nodepairs:
+        nodedict[k].append(v)
+    # This loop ensures that each Node's children are correct
+    for vertex in nodes:
+        find_children(vertex)
+        if vertex.level == 1:
+            root_children.append(vertex)
+    global rootnode
+    rootnode = Node(root.name, 0, root.count_terminals(), root_children)
+# Parser----------------------------------------------------------------------------------------------------------------
 
 @app.route("/")
 def plot():
@@ -88,37 +111,9 @@ def plot():
     source = ColumnDataSource()
     xdr = DataRange1d(start=5, end=15)
     ydr = DataRange1d(start=5, end=15)
-    plot1 = figure(title=None, x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
+    plot1 = figure(title="Sunburst", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
-
-    class Node:
-        def __init__(self, level, children, leaves_subtree):
-            self.color = (255, 0, 0)
-            self.level = level
-            self.children = children
-            self.leaves_subtree = leaves_subtree
-            self.width = 1
-            self.range = 1
-            self.right_bound = 0
-            self.left_bound = 0
-            self.parent = None
-            self.seen = False
-
-    m = Node(3, None, 1)
-    t = Node(3, None, 1)
-    r = Node(2, [m], 1)
-    f = Node(2, None, 1)
-    g = Node(2, None, 1)
-    h = Node(2, [t], 1)
-    i = Node(2, None, 1)
-    j = Node(2, None, 1)
-    k = Node(2, None, 1)
-    e = Node(1, [r, k, j], 3)
-    b = Node(1, [f], 1)
-    c = Node(1, [g, h], 2)
-    d = Node(1, [i], 1)
-    a = Node(0, [b, c, d, e], 7)
 
     def run(root):
         set_parent_and_color(root)
@@ -154,7 +149,7 @@ def plot():
             max_depth = 4
             rgb = (255 / max_depth)
             for n in root.children:
-                n.color = (255, rgb * n.level, 0)
+                n.color = '#FF0000'
                 n.parent = root
                 set_parent_and_color(n)
 
@@ -173,7 +168,7 @@ def plot():
                 n.seen = False
                 reset(n)
 
-    run(a)
+    run(rootnode)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Second visualisation:
@@ -181,43 +176,15 @@ def plot():
     source = ColumnDataSource()
     xdr = DataRange1d(start=5, end=15)
     ydr = DataRange1d(start=5, end=15)
-    plot2 = figure(title=None, x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
+    plot2 = figure(title="Foam tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
 
-    class Node:
-        def __init__(self, level, children, leaves_subtree, color):
-            self.color = color
-            self.level = level
-            self.children = children
-            self.leaves_subtree = leaves_subtree
-            self.width = 1
-            self.range = 1
-            self.right_bound = 0
-            self.left_bound = 0
-            self.parent = None
-            self.seen = False
-            self.top = 0
-            self.bottom = 0
-            self.right = 0
-            self.left = 0
-            self.area = 0
-
-
-
-    # b_b = Node(2, None, 1, (80, 236, 255))
-    # b_a = Node(2, None, 1, (40, 60, 150))
-    # e = Node(1, None, 1, (255, 50, 50))
-    # d = Node(1, None, 1, (50, 50, 255))#
-    # c = Node(1, None, 1, (50, 255, 255))#
-    # b = Node(1, [b_a, b_b], 2, (255, 255, 50))
-    # a = Node(0, [b, c, d, e], 5, (255, 0, 255))
-
-    def run_foamtree():
-        set_parent(a)
-        foamtree_root(a)
+    def run_foamtree(root):
+        set_parent(root)
+        foamtree_root(root)
         curdoc().add_root(plot2)
-        reset(a)
+        reset(root)
 
     def foamtree(node):
         if node.children:
@@ -267,13 +234,7 @@ def plot():
                 n.parent = root
                 set_parent(n)
 
-    def reset(root):
-        if root.children:
-            for n in root.children:
-                n.seen = False
-                reset(n)
-
-    run_foamtree()
+    run_foamtree(rootnode)
 
     script1, div1 = components(plot1)
     script2, div2 = components(plot2)
