@@ -23,14 +23,56 @@
             height: 600px;
             margin-left: 247px;
             }
-            </style>
+
+            div.t {
+            font-size: 120%;
+            margin-left: 30px;
+            }
+
+            i {
+                border: solid black;
+                border-width: 0 4px 4px 0;
+                display: inline-block;
+                padding: 3px;
+                }
+
+            .right {
+                transform: rotate(-45deg);
+                -webkit-transform: rotate(-45deg);
+}
+
+</style>
         </head>
         <body background="/static/bg.png">
             <h1 id="rcorner" align= "center" style="color:#000066; font-family:Russo One; font-size:250%;">
                 Hierarchy visualisation</h1>
             <p style= "font-size:125%; margin-left: 260px; font-family:Russo One;">
                 <a href="{{ url_for('backtohomepage') }}">Back to homepage</a></p>
-            <img src="/static/tue_logo.png" style="width:270px; height:100px; margin-left:1240px; margin-top: -62.5px">
-        <div class="info"><h1 align="center" style="font-family: Russo One;">More Information:</h1></div>
+            <a href="https://www.tue.nl/"><img src="/static/tue_logo.png" style="width:270px; height:100px; margin-left:1240px; margin-top: -62.5px"></a>
+        <div class="info"><h1 align="center" style="font-family: Russo One;">More Information:</h1>
+            <div class="t" style="font-family: Russo One; font-size: 16px">This project is all about hierarchy data. Going from a data
+                set in the Newick format to a visualisation on this website. Two visualisations to be precise.
+            <br>
+            <br>
+                Roles:
+            <br>
+                <i class="right"></i> Website making done by: Almir Šahman
+                <br>
+                <br>
+                <i class="right"></i> Working on the visualiations done by: Dave Cornelis Leonardus Emons
+                <br>
+                <br>
+                <i class="right"></i> Working on the report: Raffaello Claudio Poritz
+                <br>
+                <br>
+                <i class="right"></i> Working on the visualisations: Richard Jacobus Rumoldus Schutte
+                <br>
+                <br>
+                <i class="right"></i> Working on the parsing tool and acting as scrummaster: Rick Theodorus Leonardus Wosyka
+                <br>
+                <br>
+                <i class="right"></i> Working on the upload tool: Ying Huang
+            </div>
+        </div>
         </body>
 </html>
