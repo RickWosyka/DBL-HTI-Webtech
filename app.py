@@ -102,7 +102,7 @@ def parse(file):
 # Parser---------------------------------------------------------------------------------------------------------------|
 @app.route("/")
 def index():
-    return render_template("plot2.html")
+    return render_template("intro_page.html")
 
 @app.route("/")
 def plot():
@@ -193,7 +193,6 @@ def plot():
     plot2.grid.visible = False
 
     def run_foamtree(root):
-        set_parent(root)
         foamtree_root(root)
         curdoc().add_root(plot2)
         reset(root)
@@ -240,11 +239,6 @@ def plot():
         plot2.add_glyph(source, glyph)
         foamtree(root)
 
-    def set_parent(root):
-        if root.children:
-            for n in root.children:
-                n.parent = root
-                set_parent(n)
 
     run_foamtree(rootnode)
 
@@ -277,7 +271,7 @@ def backtohomepage():
 def refresh():
     if request.method == 'POST':
         return redirect(url_for('index'))
-    return render_template('plot2.html')
+    return render_template('intro_page.html')
 
 
 if __name__ == '__main__':
