@@ -1,0 +1,283 @@
+\documentclass[journal, 9pt]{vgtc}                % final (journal style)
+%\documentclass[review,journal]{vgtc}         % review (journal style)
+%\documentclass[widereview]{vgtc}             % wide-spaced review
+%\documentclass[preprint,journal]{vgtc}       % preprint (journal style)
+
+%% Uncomment one of the lines above depending on where your paper is
+%% in the conference process. ``review'' and ``widereview'' are for review
+%% submission, ``preprint'' is for pre-publication, and the final version
+%% doesn't use a specific qualifier.
+
+%% Please use one of the ``review'' options in combination with the
+%% assigned online id (see below) ONLY if your paper uses a double blind
+%% review process. Some conferences, like IEEE Vis and InfoVis, have NOT
+%% in the past.
+
+%% Please note that the use of figures other than the optional teaser is not permitted on the first page
+%% of the journal version.  Figures should begin on the second page and be
+%% in CMYK or Grey scale format, otherwise, colour shifting may occur
+%% during the printing process.  Papers submitted with figures other than the optional teaser on the
+%% first page will be refused. Also, the teaser figure should only have the
+%% width of the abstract as the template enforces it.
+
+%% These few lines make a distinction between latex and pdflatex calls and they
+%% bring in essential packages for graphics and font handling.
+%% Note that due to the \DeclareGraphicsExtensions{} call it is no longer necessary
+%% to provide the the path and extension of a graphics file:
+%% \includegraphics{diamondrule} is completely sufficient.
+%%
+\ifpdf%                                % if we use pdflatex
+  \pdfoutput=1\relax                   % create PDFs from pdfLaTeX
+  \pdfcompresslevel=8                 % PDF Compression
+  \pdfoptionpdfminorversion=7          % create PDF 1.7
+  \ExecuteOptions{pdftex}
+  \usepackage{graphicx}                % allow us to embed graphics files
+  \DeclareGraphicsExtensions{.pdf,.png,.jpg,.jpeg} % for pdflatex we expect .pdf, .png, or .jpg files
+\else%                                 % else we use pure latex
+  \ExecuteOptions{dvips}
+  \usepackage{graphicx}                % allow us to embed graphics files
+  \DeclareGraphicsExtensions{.eps}     % for pure latex we expect eps files
+\fi%
+
+%% it is recomended to use ``\autoref{sec:bla}'' instead of ``Fig.~\ref{sec:bla}''
+\graphicspath{{figures/}{pictures/}{images/}{./}} % where to search for the images
+
+\usepackage{microtype}                 % use micro-typography (slightly more compact, better to read)
+\PassOptionsToPackage{warn}{textcomp}  % to address font issues with \textrightarrow
+\usepackage{textcomp}                  % use better special symbols
+\usepackage{mathptmx}                  % use matching math font
+\usepackage{times}                     % we use Times as the main font
+\renewcommand*\ttdefault{txtt}         % a nicer typewriter font
+\usepackage{cite}                      % needed to automatically sort the references
+\usepackage{tabu}                      % only used for the table example
+\usepackage{booktabs}                  % only used for the table example
+\usepackage{wrapfig}
+\usepackage{ragged2e}
+%% We encourage the use of mathptmx for consistent usage of times font
+%% throughout the proceedings. However, if you encounter conflicts
+%% with other math-related packages, you may want to disable it.
+
+%% In preprint mode you may define your own headline.
+%\preprinttext{To appear in IEEE Transactions on Visualization and Computer Graphics.}
+
+%% If you are submitting a paper to a conference for review with a double
+%% blind reviewing process, please replace the value ``0'' below with your
+%% OnlineID. Otherwise, you may safely leave it at ``0''.
+\onlineid{0}
+
+%% declare the category of your paper, only shown in review mode
+\vgtccategory{Research}
+%% please declare the paper type of your paper to help reviewers, only shown in review mode
+%% choices:
+%% * algorithm/technique
+%% * application/design study
+%% * evaluation
+%% * system
+%% * theory/model
+\vgtcpapertype{please specify}
+
+%% Paper title.
+\title{Sunburts and FoamTrees: A Multi-Visualization Tool}
+
+%% This is how authors are specified in the journal style
+
+%% indicate IEEE Member or Student Member in form indicated below
+\author{D. C. L. Emons, Y. Huang, R. C. Poritz, A. \v{S}ahman, R. J. R. Schutte, and R. T. L. Wosyka}
+\authorfooter{
+%% insert punctuation at end of each item
+\item
+  Dave Cornelius Leonardus Emons, E-mail: d.c.l.emons@student.tue.nl
+\item
+  Ying Huang, E-mail: y.huang.2@student.tue.nl
+\item
+  Raffaello Claudio Poritz, E-mail: r.c.poritz@student.tue.nl
+\item
+  Almir \v{S}ahman, E-mail: a.sahman@student.tue.nl
+\item
+  Richard Jacobus Rumoldus Schutte, E-mail: r.j.r.schutte@student.tue.nl
+\item
+  Rick Theodorus Leonardus Wosyka, E-mail: r.t.l.wosyka@student.tue.nl
+}
+
+%other entries to be set up for journal
+\shortauthortitle{Dave Emons \MakeLowercase{\textit{et al.}}: }
+%\shortauthortitle{Firstauthor \MakeLowercase{\textit{et al.}}: Paper Title}
+
+%% Abstract section.
+\abstract{In this report we will discuss, describe, and explain our work in creating and applying various hierarchy visualizations, each showcasing
+  different aspects of a given data set. We implemented Sunbursts and FoamTrees to incorporate different views.
+  In order to give data analysts from around the globe access to our tool providing multiple visualizations, we have used Python as our programming
+  language, along with the Bokeh library, to make it web-based, allowing access to anybody anywhere. Furthermore, we provide an example of our visualization
+  applied to our own custom data set.
+} % end of abstract
+
+%% Keywords that describe your work. Will show as 'Index Terms' in journal
+%% please capitalize first letter and insert punctuation after last keyword
+\keywords{Hierarchy visualization, Interaction techniques, Multiple coordinated views, Web-based visualization, Sunburst, FoamTree}
+
+%% ACM Computing Classification System (CCS). 
+%% See <http://www.acm.org/class/1998/> for details.
+%% The ``\CCScat'' command takes four arguments.
+
+%\CCScatlist{ % not used in journal version
+% \CCScat{K.6.1}{Management of Computing and Information Systems}%
+%{Project and People Management}{Life Cycle};
+% \CCScat{K.7.m}{The Computing Profession}{Miscellaneous}{Ethics}
+%}
+
+%% Placeholder for title image
+\teaser{
+  \centering
+  \includegraphics[width=\linewidth]{vis1.png}
+  \caption{Sunburst and FoamTree on custom data set}
+	\label{Teaser:Fig}
+}
+
+%% Uncomment below to disable the manuscript note
+%\renewcommand{\manuscriptnotetxt}{}
+
+%% Copyright space is enabled by default as required by guidelines.
+%% It is disabled by the 'review' option or via the following command:
+%\nocopyrightspace
+
+\vgtcinsertpkg
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% START OF THE PAPER %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%% The ``\maketitle'' command must be the first command after the
+%% ``\begin{document}'' command. It prepares and prints the title block.
+
+%% the only exception to this rule is the \firstsection command
+\firstsection{Introduction}
+
+\maketitle
+
+In this report, we will describe the two visualization techniques we have chosen, as well as explain what went into making our visualization tool. In order to help give perspective on hierarchical data
+to whomever may need it, be it data analysts or data enthusiasts, we have created a tool that creates two different visualizations of any hierarchical data set as they, individually, do not provide
+a full image of the data, but together, each makes up for many of the discrepancies of the other. Out of the many different visualizations (over 300 just on \url{www.treevis.net} alone), we decided
+to use Sunburts and FoamTrees, as not only to they compliment each other nicely, but they also provide with aesthetically pleasing images.\\
+One of the requirements for out tool was that it be accessible to anybody around the world, for them to simply upload a data set, in the Newick format, which is then parsed, and then have both visualizations created and shown.
+And so our tool is readily available on the internet, and makes use of the Bokeh library for Python, which facilitates the creation and integration of graphical visualizations
+on the web. We also used NumPy for the visualization, and the Biopython library for our parsing tool.\\
+We give an example of our tool, used on our own custom data set.
+\section{Related Work}
+
+Visualization of hierarchical data has been a central problem of information visualization for more than half a century. The first research paper on the matter in the Association for Computing Machinery's
+(the premier US scholarly society for computer scientists) Digital Archive dates back to the 1950's ~\cite{ACM}, but visualizations have been around for far longer, such as Johann Christian Lange's "Formal
+Logic Representation" which dates back to 1714 ~\cite{Baron1969}.\\
+Despite there being over 300 different visualizations on \url{www.treevis.net} alone ~\cite{treevis}, no single visualization gives a perfect representation of any and all hierarchical data set. For example,
+the Walker Layout ~\cite{Walker1990} suffers from the same problem as other node-link diagrams: due having the root alone at the top, with the leaves flooding
+the bottom, leaving them cramped together, not making use of the free space at the top of the visualization, near the root and the first few levels of the tree. To solve the problem of unused space, one
+could use a Nested Pie Chart ~\cite{Sukla2005}, but then another problem arrises: comparing the sizes of various shapes is inherently difficult, so estimating whether a certain subtree is larger or smaller
+than another is not something that can be done quickly and without extra information.\\
+Three-dimensional visualizations have also been created, some as early as the 1960, such as Jacques Bertin's Stereogram ~\cite{Bertin1967}. More recently, Mulitvariate Hierarchic Plots, which
+which closely resembles a three-dimensional version of our chosen Sunburst visualization, was created to help "analysts wish to interpret the structure of the data not only at a single point in
+time, but examine the changes in the data categories through time" ~\cite{Tekusova2008}. To that end, another, third dimension was added, to represent the changes of the data through
+time. Unfortunately, while this visualization technique still provides a lot of information to the data analyst, it suffers from the same problem of comparing region sizes as all other radial
+representations.\\
+Voronoi diagrams ~\cite{Balzer2005} offer aesthetically beautiful visualizations, and with the correct colouring scheme can offer input on the data that would 
+otherwise go unnoticed.  But as with every visualization, it is not perfect, as it comes at the cost of the high processing time needed to create the rendition,
+and does not support the displaying of negative values ~\cite{qlik}.\\
+\\
+
+\includegraphics[width=\linewidth]{vis2.png}
+
+\section{Data Model}
+
+In general terms, data hierarchy gives relations between groups, subgroups, and individual elements of a data set. The data has a tree-like form to it, with every element other than the root (in tree terms)
+having exactly one parent element, not more and not less, but every element can have any number of children elements, be it zero, one, or twelve.\\
+The Newick format (also known as the Newick Standard, or New Hampshire Tree Format) is a way of representing trees in a computer-friendly fashion with parentheses and commas. It uses relation parentheses and
+trees described by Arthur Cayley in 1857 ~\cite{newick}. Nodes that are children of the same parent node appear within the same set of parentheses,
+and nodes that have the same depth are incased in the same number of parentheses, although they are not necessarily the same parentheses. In other words, nodes that result from the
+same split of a branch appear in the same pair of closed parentheses, separated by commas.\\
+There are two main limitations of the New Hampshire Standard. The first is the uniqueness, or lack thereof, of trees. In some fields, the order of descendants does not matter, while the format does
+take into account the order of inputed nodes. So for example, the tree $(A_1,(B_1,B_2),A_2);$ and $(A_2,(B_2,B_1),A_1);$ represent different trees, but to analysts in fields that do not care about left or right
+children of nodes, the two trees are the same.\\
+The second limitation is that the format represents rooted trees. If the root of a tree is irrelevant, or simply not inferable, the Newick Standard does will simply arbitrarily root the tree.
+For example, an example given by Joe Felsenstein ~\cite{newick}, one of the creators of the format, is the trees $(B,(A,D),C);$, $(A,(B,C),D)$, and $((A,D),(B,C))$ represent the same unrooted trees.\\
+
+\section{The Visualization Tool}
+
+\subsection{Graphical User Interface}
+
+\includegraphics[width=\linewidth]{vis3.jpg}
+\includegraphics[width=\linewidth]{vis4.jpg}
+
+Our website is very straightforward and user-friendly. As you can see in the above screeshots, the upload tool works like most uploads tool around the web, by simply having the
+user choose a file on their computer and clicking the upload button. Our tool then creates both visualizations, and as you can see in the provided images, hovering any region in the
+visualizations gives the user information on the data under the mouse cursor. We also have implemented the more basic functions of zooming in and out, moving the visualization,
+and focusing on certain areas of the image.
+
+\subsection{Visualization Techniques}
+
+
+For our tool, we implemented both Sunbursts and FoamTrees. According to the creators of the FoamTree, the visualization is a "JavaScript Voronoi treemap
+visualization" ~\cite{Matela2011} , which is what we created, except for the fact that we used Python to create our own personal version, and not JavaScript.
+This particular visualization allows the user to zoom in and out, to follow the various branches of the tree down to the leaves. This provides a high level of
+interactivity for any user.\\
+Our other visualization techinque, Sunbursts, is a radial visualization. They show the given hierarchical data in as a set of rings with the root node in the middle. Each subsequent ring contains
+data points of the same generation, moving outward from the central node. The size of each slice can either be calculated on based on the number of children
+elements from the parent node, giving each child element the same size, or by the number of leaves in the given subtree. We chose the second option.
+
+
+\subsection{Implementation Details}
+
+
+The parsing tool uses the Biopython library to read the Newick format into a tree object. This tree consists of so-called Clades, which are the nodes of the tree. Each Clade object already has some information attached to it, such as a name and a list of its direct children. The parser takes these traits for every Clade in the tree and, along with information gained from the functions ‘.depths()’ and ‘.count_terminals()’, places them in Node objects. These Node objects are what the visualisations will use to display the dataset. All but one of the Nodes will simply be stored in a list with no way to access them directly, since this is not necessary anyway. The one Node that is easily accessible is the Node representing the root of the tree, in this case called ‘rootnode’.\\
+We chose to use Python as our programming language for ease of use. Given that we all took Data Analytics for Engineers last quartile, in which
+we learned and used Python, as well as the NumPy and Pandas library, we thought it would be best to work in a programming language we were
+all familiar with, and so we could all work in tandem on the project, without having any issues of swapping back and for between languages for 
+various parts of the tool and website. Coupled with the fact that Python was one of the recommended languages, with resources such as Bokeh 
+mentioned on the class site on Canvas, it was the natural choice.\\
+The data is uploaded to the website as a text file of any type, with the data in the Newick format. We then used the Biopython library to parse
+given dataset. The Bokeh  library was used in making both the visualization and the website, as "its goal is to provide elegant, concise construction of versatile graphics,
+and to extend this capability with high-performance interactivity over very large of streaming datasets" ~\cite{bokeh}. The visualization also made use 
+of the NumPy library for Python.\\
+
+
+\section{Application Example}
+
+\includegraphics[width=\linewidth]{vis1.png}
+
+For the purpose of this interim report, we applied our multi-visualization tool to our own custom data set. While this does not yield anomalies or unexpected results,
+it illustrates the goal and spirit of our visualizations. 
+The result are aesthetically pleasing and colourful images.
+
+
+\section{Discussion and Limitations}
+
+We ran into some unexpected setbacks in getting every part of the code to come together and work in unison. As a result, we have been forced settle on some fronts,
+as we knew they would not be ready in time for the interim report and demo. As of writing this, this unfortunately meant that we have not been able to test the full 
+extent of the limitations of our visualizations. With that being said, we are of course working hard to getting everything working as we had originally wished, and we are
+confident that everything will be in order for when we will have a server to host our website and tool.\\
+We can also talk about the theoretical limitations of our visualizations, as has been noted in the Related Works section. Our second visualization, the FoamTree,
+might run into long runtimes for large datasets, as it is a Voronoi Treemap.
+
+\section{Conclusion and Future Work}
+
+This Design-Based Learning course and project taught us a lot. We were given what seemed to be at first a large and unsurmountable task, which then when divided
+into smaller individual pieces with the help of our tutor and scrum master, no longer seemed to be a daunting and impossible assignment. We learned how to divide
+large wishes for our project into smaller, indepdenant tasks, so that any one member of our group could work on something at any time, whilst not having to rely on
+the work of others to complete their own. Through division of labour, the small subtasks came together like the different pieces of a puzzle, working in unison to work
+toward the final goal.\\
+We still have plans to improve our tool even further. We want to add further interactions with the visualizations, as well as maybe adding a new visualization to our
+tool altogether.
+
+%% if specified like this the section will be committed in review mode
+\acknowledgments{
+We would like to thank our group members for their support in this DBL project. Moreover, we are thankful to our tutor who gave us a lot of feedback to find the right decisions in this project.}
+\newpage
+
+%\bibliographystyle{abbrv}
+\bibliographystyle{abbrv-doi}
+%\bibliographystyle{abbrv-doi-narrow}
+%\bibliographystyle{abbrv-doi-hyperref}
+%\bibliographystyle{abbrv-doi-hyperref-narrow}
+
+\bibliography{biblio}
+\end{document}
+
