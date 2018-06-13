@@ -2,15 +2,35 @@
 {%block plots%}
 <link rel="stylesheet" href={{cdn_css | safe}} type="text/css" />
 <script type="text/javascript" src={{cdn_js | safe}}></script>
+<style>
+div.absolute {
+    position: absolute;
+    top: 575px;
+    left: 230px;
+}
 
-<div align="center" style="width: 690px; height: 670px; background-color: #9999FF;border: 10px solid #330066;border-radius: 15px;">
+div.absolute2 {
+    position: absolute;
+    top: 570px;
+    left: 980px;
+}
+
+
+</style>
+
+
+
+<div align="center" style="width: 690px; height: 670px; background-color: #9999FF;
+ border: 10px solid #330066;border-radius: 15px;"><div class="absolute"><img src="/static/loader.gif"></div>
 {{script1 | safe}}
 {{ div1 | safe}}
-</div>
 
- <div align="center" style="width: 690px; height: 670px; background-color: #9999FF; border:
-    10px solid #330066;border-radius: 15px;margin-left: 740px;margin-top: -690px;">
+</div>
+ <div align="center" style="width: 690px; height: 670px; background-color: #9999FF;
+ border: 10px solid #330066;border-radius: 15px; margin-left: 740px; margin-top: -691.5px;"><div class="absolute2">
+     <img src="/static/loader.gif"></div>
 {{script2 | safe}}
 {{ div2 | safe}}
  </div>
+
 {%endblock%}
