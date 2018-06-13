@@ -57,7 +57,10 @@ def parse(file):
         children = []
         for sub in subclades:
             children.append(nodedict[sub.name][0])
+            nodedict[sub.name][0].parent = node
             nodedict[sub.name].pop(0)
+       # rgb = 255 // maxDepth
+       # node.color = (255, rgb * node.level, 0)
         node.children = children
 
     trees = Phylo.parse(file, "newick").__next__()
@@ -96,7 +99,10 @@ def parse(file):
             root_children.append(vertex)
     global rootnode
     rootnode = Node(root.name, 0, root.count_terminals(), root_children)
-# Parser----------------------------------------------------------------------------------------------------------------
+# Parser---------------------------------------------------------------------------------------------------------------|
+@app.route("/")
+def index():
+    return render_template("plot2.html")
 
 @app.route("/")
 def plot():
@@ -107,13 +113,15 @@ def plot():
     from bokeh.embed import components
     from bokeh.resources import CDN
     from bokeh.plotting import figure
-
     source = ColumnDataSource()
     xdr = DataRange1d(start=5, end=15)
     ydr = DataRange1d(start=5, end=15)
     plot1 = figure(title="Sunburst", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
+
+    plot1.axis.visible = False
+    plot1.grid.visible = False
 
     def run(root):
         set_parent_and_color(root)
@@ -146,12 +154,12 @@ def plot():
 
     def set_parent_and_color(root):
         if root.children:
-            max_depth = 4
-            rgb = (255 / max_depth)
+            #rgb = (255/ root.level)
             for n in root.children:
-                n.color = '#FF0000'
+                n.color = "orange"
                 n.parent = root
                 set_parent_and_color(n)
+
 
     def sunburst_root(root):
         root.range = np.pi * 2
@@ -168,6 +176,7 @@ def plot():
                 n.seen = False
                 reset(n)
 
+
     run(rootnode)
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -176,9 +185,12 @@ def plot():
     source = ColumnDataSource()
     xdr = DataRange1d(start=5, end=15)
     ydr = DataRange1d(start=5, end=15)
-    plot2 = figure(title="Foam tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
+    plot2 = figure(title="Foam Tree", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
                   h_symmetry=False, v_symmetry=False, min_border=0,
                   tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
+
+    plot2.axis.visible = False
+    plot2.grid.visible = False
 
     def run_foamtree(root):
         set_parent(root)
@@ -260,6 +272,12 @@ def backtohomepage():
     if request.method == 'POST':
         return redirect(url_for('index'))
     return render_template('index.html')
+
+@app.route('/', methods=['GET', 'POST'])
+def refresh():
+    if request.method == 'POST':
+        return redirect(url_for('index'))
+    return render_template('plot2.html')
 
 
 if __name__ == '__main__':
