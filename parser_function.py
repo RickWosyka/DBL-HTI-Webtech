@@ -18,13 +18,6 @@ nodes = []
 rootnode = Node
 
 
-def Set_parent(root):
-    if root.children:
-        for n in root.children:
-            n.parent = root
-            Set_parent(n)
-
-
 def parse(file):
     # The function that finds the children of a given Node
     def find_children(node):
