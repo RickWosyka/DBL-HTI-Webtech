@@ -85,11 +85,11 @@
                 }
             </style>
         </head>
-        <body background="/static/bg.png">
+        <body background="/static/bg.png" onload="myFunction();">
             <h1 id="rcorner" align= "center" style="color:#000066; font-family:Russo One; font-size:250%;">
                 Hierarchy visualisation</h1>
-            <a href="https://www.tue.nl/"><img src="/static/tue_logo.png" style="width:270px;
-            height:100px; margin-left:1240px; margin-top: -20px"></a>
+            <img src="/static/tue_logo.png" style="width:270px;
+            height:100px; margin-left:1240px; margin-top: -20px">
             <p style= "font-size:200%; margin-top:-100px;"><b>Welcome to our homepage!</b></p>
             <div class="mi">
             <p style="margin-left: 400px; font-family:Russo One;"><a href="{{ url_for('more_information') }}">
@@ -102,8 +102,9 @@
             <p style= "font-size:120%; margin-left: 10px;"><b>Upload here your dataset file:</b></p>
                 <form id="upload-form" style= "margin-left: 10px;"
                       action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
-                    <input  type="file" name="file" accept="application/*" multiple>
+                    <input type="file" name="file" accept="application/*" multiple>
                     <input class="upl" type="submit" value="upload">
+                </form>
             </div>
             <div class="horl"></div>
             <div class="vertl"></div>
@@ -116,8 +117,8 @@
             </div>
             <br>
             <br>
-            Made by: <b>Almir Šahman, Dave Cornelis Leonardus Emons,
+            <div style="font-family: 'Russo One'">Made by: <b>Almir Šahman, Dave Cornelis Leonardus Emons,
             Raffaello Claudio Poritz, Richard Jacobus Rumoldus Schutte,
-            Rick Theodorus Leonardus Wosyka & Ying Huang</b>
+                Rick Theodorus Leonardus Wosyka & Ying Huang</b></div>
         </body>
 </html>
