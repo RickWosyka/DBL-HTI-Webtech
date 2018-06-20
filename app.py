@@ -26,7 +26,7 @@ class Node:
 
 maxDepth = 0
 nodes = []
-rootnode = Node("placeholder", -1, -1, None)
+rootnode = Node
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,15 +53,16 @@ def parse(file):
     def find_children(node):
         current_clade = namedict[node.name][0]
         namedict[node.name].pop(0)
+        rgb = 255 // maxDepth
+        node.color = (255, rgb * node.level, 0)
         subclades = current_clade.clades
         children = []
         for sub in subclades:
             children.append(nodedict[sub.name][0])
-            nodedict[sub.name][0].parent = node
             nodedict[sub.name].pop(0)
-       # rgb = 255 // maxDepth
-       # node.color = (255, rgb * node.level, 0)
         node.children = children
+
+
 
     trees = Phylo.parse(file, "newick").__next__()
     levels = trees.depths(unit_branch_lengths=True)  # returns a dictionary of pairs (Clade : depth)
@@ -72,7 +73,6 @@ def parse(file):
     clade_list = trees.find_clades()
     pairlist = []
     nodepairs = []
-    names_list = levels.keys()
     global nodes
     nodes = []  # this is the list that will contain all nodes
     i = 0
@@ -154,9 +154,7 @@ def plot():
 
     def set_parent_and_color(root):
         if root.children:
-            #rgb = (255/ root.level)
             for n in root.children:
-                n.color = "orange"
                 n.parent = root
                 set_parent_and_color(n)
 
