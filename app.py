@@ -107,7 +107,7 @@ def index():
 @app.route("/")
 def plot():
     import numpy as np
-    from bokeh.models import ColumnDataSource, DataRange1d
+    from bokeh.models import ColumnDataSource, DataRange1d, HoverTool, TapTool
     from bokeh.models.glyphs import AnnularWedge, Quad
     from bokeh.io import curdoc
     from bokeh.embed import components
@@ -118,12 +118,15 @@ def plot():
     ydr = DataRange1d(start=5, end=15)
     plot1 = figure(title="Sunburst", x_range=xdr, y_range=ydr, plot_width=650, plot_height=650,
                   h_symmetry=False, v_symmetry=False, min_border=0,
-                  tools="pan,wheel_zoom,box_zoom,reset,save,lasso_select,box_select,hover")
+                  tools="pan,wheel_zoom,box_zoom,reset,save")
+
+    plot1.add_tools(HoverTool(tooltips=[('Name', '@names'), ('No. of leaves', '@leaves')]))
+    plot1.add_tools(TapTool())
 
     plot1.axis.visible = False
     plot1.grid.visible = False
 
-    def run(root):
+    def run_sunburst(root):
         set_parent_and_color(root)
         sunburst_root(root)
         curdoc().add_root(plot1)
@@ -142,11 +145,14 @@ def plot():
                     else:
                         n.right_bound = n_old.left_bound
                     n.left_bound = n.right_bound + n.range
-                    glyph = AnnularWedge(x=10, y=10, inner_radius=(n.level * n.width),
-                                         outer_radius=((n.level * n.width) + n.width),
-                                         start_angle=n.right_bound, end_angle=n.left_bound,
-                                         fill_color=n.color, line_color='#ffffff', line_width=1, fill_alpha=0.7)
-                    plot1.add_glyph(source, glyph)
+                    source = ColumnDataSource(data=dict(names=[n.name], leaves=[n.leaves_subtree]))
+                    plot1.annular_wedge(x=10, y=10, inner_radius=(n.level * n.width),
+                                       outer_radius=((n.level * n.width) + n.width),
+                                       start_angle=n.right_bound, end_angle=n.left_bound,
+                                       fill_color=n.color, line_color='#ffffff', line_width=1, fill_alpha=0.5,
+                                       hover_color=n.color, hover_alpha=1.0, name=n.name, source=source,
+                                       selection_color=n.color, selection_alpha=1.0, selection_line_color='#000000',
+                                       selection_line_alpha=1.0)
                     n_old = n
                     count += 1
                     sunburst(n)
@@ -158,14 +164,16 @@ def plot():
                 n.parent = root
                 set_parent_and_color(n)
 
-
     def sunburst_root(root):
         root.range = np.pi * 2
         root.right_bound = 0
-        glyph = AnnularWedge(x=10, y=10, inner_radius=0, outer_radius=root.width,
-                             start_angle=root.right_bound, end_angle=np.pi * 2,
-                             fill_color=root.color, line_alpha=0, fill_alpha=0.7)
-        plot1.add_glyph(source, glyph)
+        source = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
+        plot1.annular_wedge(x=10, y=10, inner_radius=0, outer_radius=root.width,
+                           start_angle=root.right_bound, end_angle=np.pi * 2,
+                           fill_color=root.color, line_color='#ffffff', line_width=1, fill_alpha=0.5,
+                           hover_color=root.color, hover_alpha=1.0, name=root.name, source=source,
+                           selection_color=root.color, selection_alpha=1.0, selection_line_color='#000000',
+                           selection_line_alpha=1.0)
         sunburst(root)
 
     def reset(root):
@@ -175,7 +183,7 @@ def plot():
                 reset(n)
 
 
-    run(rootnode)
+    run_sunburst(rootnode)
 
     # -----------------------------------------------------------------------------------------------------------------
     # Second visualisation:
