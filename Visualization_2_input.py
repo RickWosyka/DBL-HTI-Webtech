@@ -64,10 +64,10 @@ def foamtree(node):
                     n.right = open_space_right
                     n.bottom = -(n.area / (n.right - n.left)) + n.top
                     on_width = False
-                source = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
+                source1 = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
                 plot.quad(left=n.left, right=n.right, top=n.top,
                              bottom=n.bottom, fill_color=n.color, fill_alpha=0.5,
-                             hover_color=n.color, hover_alpha=1.0, name=n.name, source=source,
+                             hover_color=n.color, hover_alpha=1.0, name=n.name, source=source1,
                              selection_color=n.color, selection_alpha=1.0, selection_line_color='#000000',
                              selection_line_alpha=1.0)
                 if on_width:
@@ -84,10 +84,10 @@ def foamtree_root(root):
     root.left = 6
     root.right = 14
     root.area = (root.top - root.bottom) * (root.right - root.left)
-    source = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
+    source1 = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
     plot.quad(left=root.left, right=root.right, top=root.top,
               bottom=root.bottom, fill_color=root.color, fill_alpha=0.5,
-              hover_color=root.color, hover_alpha=1.0, name=root.name, source=source,
+              hover_color=root.color, hover_alpha=1.0, name=root.name, source=source1,
               selection_color=root.color, selection_alpha=1.0, selection_line_color='#000000',
               selection_line_alpha=1.0)
     foamtree(root)
