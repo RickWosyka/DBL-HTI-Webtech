@@ -64,7 +64,7 @@ def foamtree(node):
                     n.right = open_space_right
                     n.bottom = -(n.area / (n.right - n.left)) + n.top
                     on_width = False
-                source1 = ColumnDataSource(data=dict(names=[root.name], leaves=[root.leaves_subtree]))
+                source1 = ColumnDataSource(data=dict(names=[n.name], leaves=[n.leaves_subtree]))
                 plot.quad(left=n.left, right=n.right, top=n.top,
                              bottom=n.bottom, fill_color=n.color, fill_alpha=0.5,
                              hover_color=n.color, hover_alpha=1.0, name=n.name, source=source1,
